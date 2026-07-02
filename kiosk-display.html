@@ -63,13 +63,11 @@
 
   <div class="calendar-pane">
     <!--
-      SWAP THIS: replace the src below with your own calendar's public embed URL.
-      Get it from: Google Calendar > your calendar > Settings and sharing >
-      "Integrate calendar" > Public URL / embed code.
-      This is currently showing a generic public holiday calendar just so you
-      can see the layout render on a real screen.
+      This is your FGC Production calendar, embedded via its calendar ID.
+      Requires that calendar's sharing setting to include "Make available to public" —
+      otherwise this iframe will show a blank/login screen instead of the calendar.
     -->
-    <iframe src="https://calendar.google.com/calendar/embed?src=en.usa%23holiday%40group.v.calendar.google.com&ctz=America%2FLos_Angeles&mode=MONTH&showTitle=0&showPrint=0&showTabs=0&showCalendars=0"></iframe>
+    <iframe src="https://calendar.google.com/calendar/embed?src=9d4e2a261f159578188c727dc4b8e4a202eb362fce7c83951f847988a6928573%40group.calendar.google.com&ctz=America%2FLos_Angeles&mode=MONTH&showTitle=0&showPrint=0&showTabs=0&showCalendars=0"></iframe>
   </div>
 
   <div class="side-pane">
@@ -98,6 +96,13 @@
     <h2 style="margin-top:24px">Notes</h2>
     <div class="placeholder-note">Sample text goes here — this will come from your published Doc or Sheet.</div>
   </div>
+
+  <script>
+    // Kiosk display — reload the whole page every 5 minutes so it always
+    // reflects the latest calendar events and Sheet/Doc content, without
+    // anyone needing to touch the screen.
+    setTimeout(() => location.reload(), 5 * 60 * 1000);
+  </script>
 
 </body>
 </html>
