@@ -67,7 +67,12 @@
       Requires that calendar's sharing setting to include "Make available to public" —
       otherwise this iframe will show a blank/login screen instead of the calendar.
     -->
-    <iframe src="https://calendar.google.com/calendar/embed?src=9d4e2a261f159578188c727dc4b8e4a202eb362fce7c83951f847988a6928573%40group.calendar.google.com&ctz=America%2FLos_Angeles&mode=MONTH&showTitle=0&showPrint=0&showTabs=0&showCalendars=0"></iframe>
+    <!--
+      showTabs=1 keeps the Month/Week/Agenda switcher visible on the calendar
+      itself — with a USB or Bluetooth mouse connected to the TV, whoever's
+      at the screen can click between views directly, no file edits needed.
+    -->
+    <iframe src="https://calendar.google.com/calendar/embed?src=9d4e2a261f159578188c727dc4b8e4a202eb362fce7c83951f847988a6928573%40group.calendar.google.com&ctz=America%2FLos_Angeles&mode=MONTH&showTitle=0&showPrint=0&showTabs=1&showCalendars=0"></iframe>
   </div>
 
   <div class="side-pane">
