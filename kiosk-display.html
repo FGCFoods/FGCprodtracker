@@ -3,6 +3,10 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<!-- No-cache headers: help TV browsers avoid serving a stale copy. -->
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
 <title>FGC Production Display</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -13,52 +17,223 @@
     font-family: -apple-system, Segoe UI, Roboto, sans-serif;
   }
 
-  /* LEFT: month calendar */
-  .calendar-pane { background: #ffffff; height: 100vh; border-right: 1px solid #292524; }
-  .calendar-pane iframe { width: 100%; height: 100%; border: 0; }
+  /* ============================================================
+     LEFT COLUMN: month calendar on top (shortened), with a single
+     bottom strip split into two side-by-side boxes underneath —
+     Time Off (narrow) and Samples (wide). The calendar flexes to
+     fill whatever height is left, so it just gets a bit shorter.
+     ============================================================ */
+  .left-col {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    border-right: 1px solid #292524;
+  }
+
+  .cal-frame { flex: 1 1 auto; min-height: 0; background: #ffffff; }
+  .cal-frame iframe { width: 100%; height: 100%; border: 0; display: block; }
+
+  /* Bottom strip: two boxes side by side, equal height, only as tall as
+     the taller list (capped at 34vh, then it scrolls internally). */
+  .bottom-row { flex: 0 0 auto; display: flex; border-top: 2px solid #292524; }
+
+  .info-block {
+    background: #1c1917;
+    color: #e7e5e4;
+    padding: 10px 14px;
+    max-height: 34vh;
+    overflow-y: auto;
+  }
+  .info-block.timeoff { flex: 0 0 30%; border-right: 1px solid #292524; }  /* narrow */
+  .info-block.samples { flex: 1 1 0; }                                     /* takes the rest — most of the space */
+
+  .info-block h2 {
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #d97706;                 /* amber accent — matches the sheet's sparkline */
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  /* --- Time Off entries (two compact lines each, so they fit the narrow box) --- */
+  .to-entry { padding: 3px 0; border-bottom: 1px solid #292524; }
+  .to-entry:last-child { border-bottom: 0; }
+  .to-entry .top { display: flex; justify-content: space-between; align-items: baseline; gap: 6px; }
+  .to-entry .who    { font-size: 15px; font-weight: 600; }
+  .to-entry .when   { font-size: 13px; color: #a8a29e; }
+  .to-entry .status { font-size: 12px; font-weight: 700; white-space: nowrap; }
+
+  /* Status meaning is carried by the TEXT LABEL + glyph, never color alone. */
+  .status.approved          { color: #a3e635; }
+  .status.approved::before  { content: "\2713\00a0"; }   /* ✓ */
+  .status.requested         { color: #fbbf24; }
+  .status.requested::before { content: "\25CB\00a0"; }   /* ○ */
+
+  /* --- Samples list --- */
+  .samples-list { list-style: none; }
+  .samples-list li {
+    font-size: 15px;
+    line-height: 1.5;
+    padding: 2px 0;
+    border-bottom: 1px solid #292524;
+  }
+  .samples-list li:last-child { border-bottom: 0; }
+  .samples-list li::before { content: "\2022\00a0"; color: #d97706; }  /* • */
+
+  .empty-note { font-size: 14px; color: #78716c; font-style: italic; padding: 2px 0; }
 
   /* MIDDLE: scrolling schedule/agenda view */
   .schedule-pane { background: #ffffff; height: 100vh; border-right: 1px solid #292524; }
-  .schedule-pane iframe { width: 100%; height: 100%; border: 0; }
+  .schedule-pane iframe { width: 100%; height: 100%; border: 0; display: block; }
 
   /* RIGHT: live production tracker sheet */
   .side-pane { height: 100vh; overflow: hidden; }
-  .side-pane iframe { width: 100%; height: 100%; border: 0; }
+  .side-pane iframe { width: 100%; height: 100%; border: 0; display: block; }
 </style>
 </head>
 <body>
 
-  <div class="calendar-pane">
-    <!--
-      This is your FGC Production calendar, embedded via its calendar ID.
-      Requires that calendar's sharing setting to include "Make available to public" —
-      otherwise this iframe will show a blank/login screen instead of the calendar.
-      showTabs=1 keeps the Month/Week/Agenda switcher visible — with a USB or
-      Bluetooth mouse connected to the TV, whoever's at the screen can click
-      between views directly, no file edits needed.
-    -->
-    <iframe src="https://calendar.google.com/calendar/embed?src=9d4e2a261f159578188c727dc4b8e4a202eb362fce7c83951f847988a6928573%40group.calendar.google.com&ctz=America%2FLos_Angeles&mode=MONTH&showTitle=0&showPrint=0&showTabs=1&showCalendars=0"></iframe>
+  <div class="left-col">
+
+    <!-- Month calendar (public, showTabs=1 so Month/Week/Agenda stays clickable with a mouse) -->
+    <div class="cal-frame">
+      <iframe src="https://calendar.google.com/calendar/embed?src=9d4e2a261f159578188c727dc4b8e4a202eb362fce7c83951f847988a6928573%40group.calendar.google.com&ctz=America%2FLos_Angeles&mode=MONTH&showTitle=0&showPrint=0&showTabs=1&showCalendars=0"></iframe>
+    </div>
+
+    <div class="bottom-row">
+
+      <!-- TIME OFF (narrow) — populated from the Google Sheet. Placeholder rows preview the look. -->
+      <section class="info-block timeoff">
+        <h2>Time Off</h2>
+        <div id="timeoff-rows">
+          <div class="to-entry"><div class="top"><span class="who">Maria G.</span><span class="status approved">APPROVED</span></div><div class="when">Jul 7 &ndash; 8</div></div>
+          <div class="to-entry"><div class="top"><span class="who">David R.</span><span class="status requested">REQUESTED</span></div><div class="when">Jul 10</div></div>
+        </div>
+      </section>
+
+      <!-- SAMPLES (wide) — populated from the Google Sheet. Placeholder rows preview the look. -->
+      <section class="info-block samples">
+        <h2>Samples to Make</h2>
+        <ul class="samples-list" id="samples-rows">
+          <li class="empty-note" style="list-style:none">Loading&hellip;</li>
+        </ul>
+      </section>
+
+    </div>
+
   </div>
 
   <div class="schedule-pane">
-    <!-- Schedule/Agenda view — scrolling list, no day-cell truncation -->
     <iframe src="https://calendar.google.com/calendar/embed?src=9d4e2a261f159578188c727dc4b8e4a202eb362fce7c83951f847988a6928573%40group.calendar.google.com&ctz=America%2FLos_Angeles&mode=AGENDA&showTitle=0&showPrint=0&showTabs=0&showCalendars=0"></iframe>
   </div>
 
   <div class="side-pane">
-    <!--
-      Live Production Tracker sheet, published via File > Share > Publish to web.
-      Only the Production Tracker tab is published — the Production Log tab
-      stays private and is never part of what shows here.
-    -->
     <iframe src="https://docs.google.com/spreadsheets/d/e/2PACX-1vSmTpKUo-d-BMT7ecWg3nCjC52Mr6_omCJhdH1eJbgAOoY7czVe0E2lQxVtm0EdIh-nYnF_sFWTjGrZ/pubhtml?widget=true&headers=false"></iframe>
   </div>
 
   <script>
-    // Kiosk display — reload the whole page every 5 minutes so it always
-    // reflects the latest calendar events and Sheet/Doc content, without
-    // anyone needing to touch the screen.
-    setTimeout(() => location.reload(), 5 * 60 * 1000);
+  /* ================================================================
+     LIST SOURCES  ← paste your two published-CSV URLs here.
+
+     These can be two new tabs on your EXISTING production sheet — no
+     separate spreadsheet needed. One-time setup:
+       1. Add two tabs: "Time Off" and "Samples".
+          - Time Off tab, row 1 headers:  Name | Dates | Status
+          - Samples  tab, row 1 header:   Sample     (one sample per row)
+       2. File > Share > Publish to web. Pick the "Time Off" tab,
+          format = Comma-separated values (.csv), Publish, copy the URL
+          into TIMEOFF_CSV. Repeat for "Samples" into SAMPLES_CSV.
+          (Your Production Log tab stays unpublished/private, as now.)
+
+     Until real URLs are pasted in, the placeholder rows above stay shown.
+     ================================================================ */
+  var TIMEOFF_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSmTpKUo-d-BMT7ecWg3nCjC52Mr6_omCJhdH1eJbgAOoY7czVe0E2lQxVtm0EdIh-nYnF_sFWTjGrZ/pub?gid=1792980750&single=true&output=csv";
+  var SAMPLES_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSmTpKUo-d-BMT7ecWg3nCjC52Mr6_omCJhdH1eJbgAOoY7czVe0E2lQxVtm0EdIh-nYnF_sFWTjGrZ/pub?gid=1492618378&single=true&output=csv";
+
+  // --- tiny, dependency-free CSV parser (handles quoted fields & commas) ---
+  function parseCSV(text) {
+    var rows = [], row = [], field = "", q = false, i, c;
+    for (i = 0; i < text.length; i++) {
+      c = text[i];
+      if (q) {
+        if (c === '"') { if (text[i + 1] === '"') { field += '"'; i++; } else q = false; }
+        else field += c;
+      } else {
+        if (c === '"') q = true;
+        else if (c === ",") { row.push(field); field = ""; }
+        else if (c === "\n") { row.push(field); rows.push(row); row = []; field = ""; }
+        else if (c !== "\r") field += c;
+      }
+    }
+    if (field !== "" || row.length) { row.push(field); rows.push(row); }
+    return rows;
+  }
+
+  function fetchCSV(url) {
+    return fetch(url + (url.indexOf("?") > -1 ? "&" : "?") + "_=" + Date.now(),
+                 { cache: "no-store" })
+      .then(function (r) { if (!r.ok) throw new Error(r.status); return r.text(); })
+      .then(parseCSV);
+  }
+
+  // Rows with an empty first cell are treated as blank/spacer rows and skipped.
+  function dataRows(rows) {
+    return rows.slice(1).filter(function (r) { return r[0] && r[0].trim() !== ""; });
+  }
+
+  function renderTimeOff(rows) {
+    var box = document.getElementById("timeoff-rows");
+    box.textContent = "";
+    var data = dataRows(rows);
+    if (!data.length) { box.innerHTML = '<div class="empty-note">None scheduled</div>'; return; }
+    data.forEach(function (r) {
+      var raw = (r[2] || "").trim(), cls = "", label = raw.toUpperCase();
+      if (/^appr/i.test(raw)) cls = "approved";
+      else if (/^req/i.test(raw)) cls = "requested";
+      var entry = document.createElement("div"); entry.className = "to-entry";
+      var top = document.createElement("div"); top.className = "top";
+      var who = document.createElement("span"); who.className = "who"; who.textContent = r[0] || "";
+      var st  = document.createElement("span"); st.className = "status " + cls; st.textContent = label;
+      top.appendChild(who); top.appendChild(st);
+      var when = document.createElement("div"); when.className = "when"; when.textContent = r[1] || "";
+      entry.appendChild(top); entry.appendChild(when);
+      box.appendChild(entry);
+    });
+  }
+
+  function renderSamples(rows) {
+    var box = document.getElementById("samples-rows");
+    box.textContent = "";
+    var data = dataRows(rows);
+    if (!data.length) { box.innerHTML = '<li class="empty-note" style="list-style:none">None right now</li>'; return; }
+    data.forEach(function (r) {
+      var text = r.filter(function (c) { return c && c.trim() !== ""; }).join("  \u2014  ");
+      var li = document.createElement("li"); li.textContent = text;
+      box.appendChild(li);
+    });
+  }
+
+  function loadLists() {
+    if (/^https?:/.test(TIMEOFF_CSV)) {
+      fetchCSV(TIMEOFF_CSV).then(renderTimeOff)
+        .catch(function (e) { console.warn("Time Off load failed:", e); });
+    }
+    if (/^https?:/.test(SAMPLES_CSV)) {
+      fetchCSV(SAMPLES_CSV).then(renderSamples)
+        .catch(function (e) { console.warn("Samples load failed:", e); });
+    }
+  }
+
+  loadLists();                             // on page load
+  setInterval(loadLists, 2 * 60 * 1000);   // refresh just the lists every 2 min
+
+  // Full page reload every 5 min (cache-busting) so calendar + sheet stay fresh too.
+  setTimeout(function () {
+    var url = new URL(location.href);
+    url.searchParams.set("t", Date.now());
+    location.replace(url.toString());
+  }, 5 * 60 * 1000);
   </script>
 
 </body>
