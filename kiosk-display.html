@@ -10,10 +10,23 @@
 <title>FGC Production Display</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { height: 100%; background: #1c1917; overflow: hidden; }
-  body {
+  html, body { height: 100%; width: 100%; background: #1c1917; overflow: hidden; }
+
+  /* ============================================================
+     ZOOM KNOB — change --scale to resize the WHOLE display.
+     Lower = smaller / more zoomed out.  1 = original size.
+     e.g. 0.85 = a little smaller, 0.65 = a lot smaller.
+     This scales everything (calendar, agenda, sheet, and the boxes)
+     and survives every auto-reload, unlike browser zoom.
+     ============================================================ */
+  #zoom {
+    --scale: 0.75;
     display: grid;
     grid-template-columns: 42% 28% 30%;
+    width: calc(100% / var(--scale));
+    height: calc(100% / var(--scale));
+    transform: scale(var(--scale));
+    transform-origin: top left;
     font-family: -apple-system, Segoe UI, Roboto, sans-serif;
   }
 
@@ -26,22 +39,20 @@
   .left-col {
     display: flex;
     flex-direction: column;
-    height: 100vh;
+    height: 100%;
     border-right: 1px solid #292524;
   }
 
   .cal-frame { flex: 1 1 auto; min-height: 0; background: #ffffff; }
   .cal-frame iframe { width: 100%; height: 100%; border: 0; display: block; }
 
-  /* Bottom strip: two boxes side by side, equal height, only as tall as
-     the taller list (capped at 34vh, then it scrolls internally). */
+  /* Bottom strip: two boxes side by side, each sized to its list. */
   .bottom-row { flex: 0 0 auto; display: flex; border-top: 2px solid #292524; }
 
   .info-block {
     background: #1c1917;
     color: #e7e5e4;
     padding: 10px 14px;
-    max-height: 34vh;
     overflow-y: auto;
   }
   .info-block.timeoff { flex: 0 0 30%; border-right: 1px solid #292524; }  /* narrow */
@@ -84,15 +95,16 @@
   .empty-note { font-size: 14px; color: #78716c; font-style: italic; padding: 2px 0; }
 
   /* MIDDLE: scrolling schedule/agenda view */
-  .schedule-pane { background: #ffffff; height: 100vh; border-right: 1px solid #292524; }
+  .schedule-pane { background: #ffffff; height: 100%; border-right: 1px solid #292524; }
   .schedule-pane iframe { width: 100%; height: 100%; border: 0; display: block; }
 
   /* RIGHT: live production tracker sheet */
-  .side-pane { height: 100vh; overflow: hidden; }
+  .side-pane { height: 100%; overflow: hidden; }
   .side-pane iframe { width: 100%; height: 100%; border: 0; display: block; }
 </style>
 </head>
 <body>
+<div id="zoom">
 
   <div class="left-col">
 
@@ -131,6 +143,8 @@
   <div class="side-pane">
     <iframe src="https://docs.google.com/spreadsheets/d/e/2PACX-1vSmTpKUo-d-BMT7ecWg3nCjC52Mr6_omCJhdH1eJbgAOoY7czVe0E2lQxVtm0EdIh-nYnF_sFWTjGrZ/pubhtml?widget=true&headers=false"></iframe>
   </div>
+
+</div><!-- /#zoom -->
 
   <script>
   /* ================================================================
