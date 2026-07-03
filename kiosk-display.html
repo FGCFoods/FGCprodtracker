@@ -13,19 +13,19 @@
   html, body { height: 100%; width: 100%; background: #1c1917; overflow: hidden; }
 
   /* ============================================================
-     ZOOM KNOB — change --scale to resize the WHOLE display.
-     Lower = smaller / more zoomed out.  1 = original size.
-     e.g. 0.85 = a little smaller, 0.65 = a lot smaller.
-     This scales everything (calendar, agenda, sheet, and the boxes)
-     and survives every auto-reload, unlike browser zoom.
+     ZOOM — resize the WHOLE display. Lower = smaller.
+     To change size, edit ALL THREE numbers to match:
+       scale 0.60 -> width/height 166.667%
+       scale 0.50 -> width/height 200%
+       scale 0.70 -> width/height 142.857%
+     (Just tell me the size you want and I'll set them.)
      ============================================================ */
   #zoom {
-    --scale: 0.75;
     display: grid;
     grid-template-columns: 42% 28% 30%;
-    width: calc(100% / var(--scale));
-    height: calc(100% / var(--scale));
-    transform: scale(var(--scale));
+    width: 166.667%;
+    height: 166.667%;
+    transform: scale(0.60);
     transform-origin: top left;
     font-family: -apple-system, Segoe UI, Roboto, sans-serif;
   }
