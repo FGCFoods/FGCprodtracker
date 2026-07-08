@@ -67,19 +67,22 @@
     margin-bottom: 6px;
   }
 
-  /* --- Time Off entries (two compact lines each, so they fit the narrow box) --- */
-  .to-entry { padding: 3px 0; border-bottom: 1px solid #292524; }
+  /* --- Time Off entries (one line each: name + date, glyph status on the right) --- */
+  .to-entry {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    padding: 3px 0;
+    border-bottom: 1px solid #292524;
+  }
   .to-entry:last-child { border-bottom: 0; }
-  .to-entry .top { display: flex; justify-content: space-between; align-items: baseline; gap: 6px; }
-  .to-entry .who    { font-size: 15px; font-weight: 600; }
-  .to-entry .when   { font-size: 13px; color: #a8a29e; }
-  .to-entry .status { font-size: 12px; font-weight: 700; white-space: nowrap; }
+  .to-entry .who    { font-size: 15px; font-weight: 600; white-space: nowrap; }
+  .to-entry .when   { font-size: 13px; color: #a8a29e; flex: 1; }
+  .to-entry .status { font-size: 15px; white-space: nowrap; }
 
-  /* Status meaning is carried by the TEXT LABEL + glyph, never color alone. */
-  .status.approved          { color: #a3e635; }
-  .status.approved::before  { content: "\2713\00a0"; }   /* ✓ */
-  .status.requested         { color: #fbbf24; }
-  .status.requested::before { content: "\25CB\00a0"; }   /* ○ */
+  /* Status = shape first (✓ vs hourglass), color only as faint backup — never color alone. */
+  .status.approved  { color: #a3e635; }
+  .status.requested { color: #fbbf24; }
 
   /* --- Samples list --- */
   .samples-list { list-style: none; }
@@ -119,8 +122,8 @@
       <section class="info-block timeoff">
         <h2>Time Off</h2>
         <div id="timeoff-rows">
-          <div class="to-entry"><div class="top"><span class="who">Maria G.</span><span class="status approved">APPROVED</span></div><div class="when">Jul 7 &ndash; 8</div></div>
-          <div class="to-entry"><div class="top"><span class="who">David R.</span><span class="status requested">REQUESTED</span></div><div class="when">Jul 10</div></div>
+          <div class="to-entry"><span class="who">Maria G.</span><span class="when">Jul 7 &ndash; 8</span><span class="status approved">&#10003;</span></div>
+          <div class="to-entry"><span class="who">David R.</span><span class="when">Jul 10</span><span class="status requested">&#8987;</span></div>
         </div>
       </section>
 
@@ -202,16 +205,14 @@
     var data = dataRows(rows);
     if (!data.length) { box.innerHTML = '<div class="empty-note">None scheduled</div>'; return; }
     data.forEach(function (r) {
-      var raw = (r[2] || "").trim(), cls = "", label = raw.toUpperCase();
-      if (/^appr/i.test(raw)) cls = "approved";
-      else if (/^req/i.test(raw)) cls = "requested";
+      var raw = (r[2] || "").trim(), cls = "", glyph = "";
+      if (/^appr/i.test(raw)) { cls = "approved"; glyph = "\u2713"; }       // check mark
+      else if (/^req/i.test(raw)) { cls = "requested"; glyph = "\u23F3"; }  // hourglass
       var entry = document.createElement("div"); entry.className = "to-entry";
-      var top = document.createElement("div"); top.className = "top";
       var who = document.createElement("span"); who.className = "who"; who.textContent = r[0] || "";
-      var st  = document.createElement("span"); st.className = "status " + cls; st.textContent = label;
-      top.appendChild(who); top.appendChild(st);
-      var when = document.createElement("div"); when.className = "when"; when.textContent = r[1] || "";
-      entry.appendChild(top); entry.appendChild(when);
+      var when = document.createElement("span"); when.className = "when"; when.textContent = r[1] || "";
+      var st  = document.createElement("span"); st.className = "status " + cls; st.textContent = glyph;
+      entry.appendChild(who); entry.appendChild(when); entry.appendChild(st);
       box.appendChild(entry);
     });
   }
